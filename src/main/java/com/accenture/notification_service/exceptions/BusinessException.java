@@ -1,11 +1,11 @@
 package com.accenture.notification_service.exceptions;
 
 public abstract class BusinessException extends RuntimeException {
-    public BusinessException(String message) {
+    protected BusinessException(String message) {
         super(message);
     }
 
-    public BusinessException(String message, Throwable throwable) {
+    protected BusinessException(String message, Throwable throwable) {
         super(message, throwable);
     }
 }
