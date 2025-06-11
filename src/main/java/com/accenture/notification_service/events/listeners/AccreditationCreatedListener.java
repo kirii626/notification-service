@@ -4,7 +4,6 @@ import com.accenture.notification_service.client.dtos.AccreditationDtoOutput;
 import com.accenture.notification_service.exceptions.EmailException;
 import com.accenture.notification_service.services.EmailService;
 import com.accenture.notification_service.services.PdfGeneratorService;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
