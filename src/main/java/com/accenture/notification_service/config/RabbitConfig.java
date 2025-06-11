@@ -18,7 +18,7 @@ import java.util.Map;
 @Configuration
 public class RabbitConfig {
 
-    @Value("{$accreditation.exchange}")
+    @Value("${accreditation.exchange}")
     private String accreditationExchange;
 
     @Value("${rabbitmq.routingkey.accreditation}")
@@ -26,6 +26,8 @@ public class RabbitConfig {
 
     @Value("${rabbitmq.queue.accreditation}")
     private String accreditationQueue;
+
+    private static final String ACCREDITATION_DEAD_LETTER_QUEUE = "accreditation.dlq";
 
     @Bean
     @Primary
@@ -37,7 +39,7 @@ public class RabbitConfig {
     public Queue accreditationQueue() {
         Map<String, Object> args = new HashMap<>();
         args.put("x-dead-letter-exchange", "accreditation.dlx");
-        args.put("x-dead-letter-routing-key", "accreditation.dlq");
+        args.put("x-dead-letter-routing-key", ACCREDITATION_DEAD_LETTER_QUEUE);
         args.put("x-message-ttl", 20000);
 
         return new Queue(accreditationQueue, true, false, false, args);
@@ -65,7 +67,7 @@ public class RabbitConfig {
 
     @Bean
     public Queue deadLetterQueue() {
-        return new Queue("accreditation.dlq");
+        return new Queue(ACCREDITATION_DEAD_LETTER_QUEUE);
     }
 
     @Bean
@@ -78,7 +80,7 @@ public class RabbitConfig {
         return BindingBuilder
                 .bind(deadLetterQueue())
                 .to(deadLetterExchange())
-                .with("accreditation.dlq");
+                .with(ACCREDITATION_DEAD_LETTER_QUEUE);
     }
 
 }
