@@ -1,0 +1,53 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 300
+
+actor "User" as user
+participant "Client\nApplication" as client
+participant "Eureka\nServer" as eureka
+participant "Notification\nService" as notif
+queue "RabbitMQ" as rabbit
+participant "Gmail\nSMTP" as gmail
+
+' Initial setup
+notif -> eureka: Register service (POST /eureka/apps)
+activate eureka
+eureka --> notif: Registration confirmed (HTTP 204)
+deactivate eureka
+
+' Heartbeat process
+loop Every 30 seconds
+    notif -> eureka: Send heartbeat
+    eureka --> notif: Heartbeat acknowledged
+end
+
+' Message flow
+user -> client: Triggers accreditation event
+activate client
+client -> rabbit: Publish accreditation message\n(routing_key: "accreditation.event")
+deactivate client
+
+rabbit -> notif: Consume message from queue\n@RabbitListener(queues = "notification.queue")
+activate notif
+
+' Email preparation and sending
+notif -> notif: Create email content\nfrom template
+notif -> notif: Build EmailMessage object\n(recipient, subject, content)
+
+notif -> gmail: Connect with SMTP credentials
+activate gmail
+notif -> gmail: Send email via JavaMailSender
+gmail --> notif: Email sent successfully
+deactivate gmail
+
+' Error handling
+alt #pink Email sending fails
+    gmail --> notif: SMTP Exception
+    notif -> rabbit: Reject message\n(will be requeued)
+else #lightgreen Success
+    notif --> rabbit: Acknowledge message\n(message removed from queue)
+end
+
+deactivate notif
+
+@enduml
